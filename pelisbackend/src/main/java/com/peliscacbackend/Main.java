@@ -11,7 +11,7 @@ public class Main {
     private final String contraseña = "VA LA CONTRASEÑA DE CADA UNO";
     private final String db = "proyecto_movies_2024";
     private final String ip = "localhost"; 
-    private final String puerto = "3306";//Chequeen su puerto
+    private final String puerto = "3306";//Chequeen su puerto.
     private final String cadena = "jdbc:mysql://" + ip + ":" + puerto + "/" + db;
 
 
