@@ -7,11 +7,11 @@ import java.sql.DriverManager;
 public class Main {
 
     private Connection conectar = null;
-    private final String usuario = "VA EL USUARIO DE CADA UNO";
-    private final String contraseña = "VA LA CONTRASEÑA DE CADA UNO";
+    private final String usuario = "root";
+    private final String contraseña = "";
     private final String db = "proyecto_movies_2024";
     private final String ip = "localhost"; 
-    private final String puerto = "3306";//Chequeen su puerto.
+    private final String puerto = "3312";//Chequeen su puerto.
     private final String cadena = "jdbc:mysql://" + ip + ":" + puerto + "/" + db;
 
 
