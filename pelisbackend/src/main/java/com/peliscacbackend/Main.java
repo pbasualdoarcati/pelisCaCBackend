@@ -13,7 +13,15 @@ public class Main {
     private final String ip = "localhost"; 
     private final String puerto = "3312";//Chequeen su puerto.
     private final String cadena = "jdbc:mysql://" + ip + ":" + puerto + "/" + db;
+//     private ResultSet resultSet = null;
 
+//     public ResultSet getResultSet() {
+//     return resultSet;
+// }
+
+// public void setResultSet(ResultSet resultSet) {
+//     this.resultSet = resultSet;
+// }
 
     public Connection establecerConexion() {
         try {
@@ -25,9 +33,22 @@ public class Main {
         }
         return conectar;
     }
+
+    public void Desconexion(){
+        try{
+            conectar.close();
+            System.out.println("Desconexión ok");
+        }
+        catch(SQLException e){
+            System.out.println("Error al desconectar " + e.getMessage());
+        }
+    }
     public static void main(String[] args) {
         Main app = new Main();
         app.establecerConexion();
+        app.Desconexion();
+        
+        
 
     }
 }
