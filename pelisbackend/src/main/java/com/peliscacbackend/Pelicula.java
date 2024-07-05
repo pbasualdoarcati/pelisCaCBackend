@@ -1,29 +1,35 @@
 package com.peliscacbackend;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Pelicula {
 
-
-    private Integer idPelicula; /*privado es el tipo de encapsulamiento */
+    private Integer idPelicula; /* privado es el tipo de encapsulamiento */
     private String titulo;
     private String duracion;
     private String imagen;
     private String synopsis;
     private Integer idActor;
     private Integer idDirector;
-    private Integer idGenero;   
+    private Integer idGenero;
 
-    //metodo CONSTRUCTOR
-    public Pelicula(Integer idPelicula, String titulo, String duracion, String imagen, String synopsis, Integer idActor, Integer idDirector, Integer idGenero){
+    // Default constructor
+    public Pelicula() {
+    }
+
+    // metodo CONSTRUCTOR
+    public Pelicula(Integer idPelicula, String titulo, String duracion, String imagen, String synopsis, Integer idActor,
+            Integer idDirector, Integer idGenero) {
 
         this.idPelicula = idPelicula;
         this.titulo = titulo;
         this.duracion = duracion;
         this.imagen = imagen;
         this.synopsis = synopsis;
-        this.idActor=idActor;
-        this.idDirector=idDirector;
-        this.idGenero=idGenero;
-
+        this.idActor = idActor;
+        this.idDirector = idDirector;
+        this.idGenero = idGenero;
     }
 
     public Integer getIdPelicula() {
@@ -89,6 +95,5 @@ public class Pelicula {
     public void setIdGenero(Integer idGenero) {
         this.idGenero = idGenero;
     }
-    
 
 }
