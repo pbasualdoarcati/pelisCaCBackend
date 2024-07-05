@@ -3,6 +3,7 @@ package com.peliscacbackend;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -104,5 +105,57 @@ public class Controlador extends HttpServlet { // Declaración de la clase Contr
             conexion.close(); // Close the database connection after the operation
         }
     }
+
+    // Post- hay errores y consultas
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        response.setHeader("Access-Control-Allow-Origin", "*");
+        response.setHeader("Access-Control-Allow-Methods", "*");
+        response.setHeader("Access-Control-Allow-Headers", "Content-Type");
+        Conexion conexion = new Conexion();// Vamos a hacer conexion?? la dejo por las dudas??
+        Connection conn = conexion.getConnection();  // idem pregunta de arriba
+
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            Pelicula pelicula = mapper.readValue(request.getInputStream(), Pelicula.class);
+        
+            // nuevas tablas de pelis
+            String query = "INSERT INTO peliculas (titulo, duracion, imagen, synopsis, idActor, idDirector, idGenero) VALUES (?, ?, ?, ?, ?, ?, ?)";
+            PreparedStatement statement = conn.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
+        
+            // Establecer los parámetros de la consulta de inserción
+            statement.setString(1, pelicula.getTitulo());
+            statement.setString(2, pelicula.getDuracion());
+            statement.setString(3, pelicula.getImagen());
+            statement.setString(4, pelicula.getSynopsis());
+            statement.setInt(5, pelicula.getIdActor());
+            statement.setInt(6, pelicula.getIdDirector());
+            statement.setInt(7, pelicula.getIdGenero());
+
+
+        
+            statement.executeUpdate();
+        
+            ResultSet rs = statement.getGeneratedKeys();
+            if (rs.next()) {
+                Long idPeli = rs.getLong(1);
+                
+                response.setContentType("application/json");
+                String json = mapper.writeValueAsString(idPeli);
+                response.getWriter().write(json);
+            }
+            
+            response.setStatus(HttpServletResponse.SC_CREATED);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+        } catch (IOException e) {
+            e.printStackTrace(); 
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+        } finally {
+            conexion.close();
+        }
+        
+    }
+
 
 }
