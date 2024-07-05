@@ -16,7 +16,7 @@ public class Conexion {
             // Paso 2: Establecer la conexión con la base de datos 'peliculas_cac_java' en localhost
             this.connection = DriverManager.getConnection(
 
-                "jdbc:mysql://localhost:3307/CAC",  // URL de conexión JDBC para MySQL
+                "jdbc:mysql://localhost:3306/CAC",  // URL de conexión JDBC para MySQL
                 "root",  // Nombre de usuario de la base de datos (cambia según tu configuración)
                 "maxipass"  // Contraseña de la base de datos (cambia según tu configuración)
             );
