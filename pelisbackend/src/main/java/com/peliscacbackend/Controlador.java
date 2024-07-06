@@ -6,7 +6,6 @@ import java.util.*;
 
 
 import javax.servlet.*;
-import javax.servlet.annotation.*;
 import javax.servlet.http.*;
 
 
@@ -14,7 +13,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 
 // Clase Controlador: Maneja las peticiones HTTP para insertar y recuperar películas.
-@WebServlet("/peliculas") // Anotación que mapea este servlet a la URL "/peliculas"
+// @WebServlet("/peliculas") // Anotación que mapea este servlet a la URL "/peliculas"
 public class Controlador extends HttpServlet { // Declaración de la clase Controlador que extiende HttpServlet
 
     protected void doPut(HttpServletRequest request, HttpServletResponse response)
@@ -54,7 +53,7 @@ public class Controlador extends HttpServlet { // Declaración de la clase Contr
                 params.add(pelicula.getSynopsis());
             }
             if (pelicula.getIdDirector() != null) {
-                query.append("idDirector = ?, ");
+                query.append("id_director = ?, ");
                 params.add(pelicula.getIdDirector());
             }
 
@@ -120,13 +119,13 @@ public class Controlador extends HttpServlet { // Declaración de la clase Contr
 
             // Validación de la entrada
             if (pelicula.getTitulo() == null || pelicula.getDuracion() == null || pelicula.getImagen() == null ||
-                pelicula.getSynopsis() == null || pelicula.getIdActor() == null || pelicula.getIdDirector() == null || pelicula.getIdGenero() == null) {
+                pelicula.getSynopsis() == null || pelicula.getIdDirector() == null) {
                 response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
                 response.getWriter().write("Todos los campos son requeridos.");
                 return;
             }
 
-            String query = "INSERT INTO peliculas (titulo, duracion, imagen, synopsis, idDirector) VALUES (?, ?, ?, ?, ?)";
+            String query = "INSERT INTO movies (title, runtime, poster_path, overview, id_director) VALUES (?, ?, ?, ?, ?)";
             PreparedStatement statement = conn.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
 
             statement.setString(1, pelicula.getTitulo());
@@ -163,9 +162,6 @@ public class Controlador extends HttpServlet { // Declaración de la clase Contr
             conexion.close();
         }
     }
-
-
-
       protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         //Configurar cabeceras CORS
         response.setHeader("Access-Control-Allow-Origin", "*"); // Permitir acceso desde cualquier origen
@@ -188,9 +184,12 @@ public class Controlador extends HttpServlet { // Declaración de la clase Contr
                 Pelicula pelicula = new Pelicula(
                     resultSet.getInt("id"),
                     resultSet.getString("title"),  
-                    resultSet.getString("overview"),
                     resultSet.getString("runtime"),
-                    query, resultSet.getInt("idDirector"), null, null
+                    resultSet.getString("poster_path"),
+                    resultSet.getString("overview"),
+                    null,
+                    resultSet.getInt("id_director"), 
+                    null
                 );
                 peliculas.add(pelicula);  // Agregar el objeto Pelicula a la lista
             }
