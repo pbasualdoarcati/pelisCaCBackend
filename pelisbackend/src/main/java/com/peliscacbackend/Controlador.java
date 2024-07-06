@@ -127,16 +127,16 @@ public class Controlador extends HttpServlet { // Declaración de la clase Contr
                 return;
             }
 
-            String query = "INSERT INTO peliculas (titulo, duracion, imagen, synopsis, idActor, idDirector, idGenero) VALUES (?, ?, ?, ?, ?, ?, ?)";
+            String query = "INSERT INTO peliculas (titulo, duracion, imagen, synopsis, idDirector) VALUES (?, ?, ?, ?, ?)";
             PreparedStatement statement = conn.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
 
             statement.setString(1, pelicula.getTitulo());
             statement.setString(2, pelicula.getDuracion());
             statement.setString(3, pelicula.getImagen());
             statement.setString(4, pelicula.getSynopsis());
-            statement.setInt(5, pelicula.getIdActor());
-            statement.setInt(6, pelicula.getIdDirector());
-            statement.setInt(7, pelicula.getIdGenero());
+            statement.setInt(5, pelicula.getIdDirector());
+/*             statement.setInt(5, pelicula.getIdActor());
+            statement.setInt(7, pelicula.getIdGenero()); */
 
             int rowsInserted = statement.executeUpdate();
             if (rowsInserted > 0) {
