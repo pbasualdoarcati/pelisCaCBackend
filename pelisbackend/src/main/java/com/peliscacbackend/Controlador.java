@@ -11,7 +11,6 @@ import javax.servlet.http.*;
 
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.sql.Statement;
 
 
 // Clase Controlador: Maneja las peticiones HTTP para insertar y recuperar películas.
@@ -162,6 +161,50 @@ public class Controlador extends HttpServlet { // Declaración de la clase Contr
             response.getWriter().write("Error al procesar la solicitud.");
         } finally {
             conexion.close();
+        }
+    }
+
+
+
+      protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        //Configurar cabeceras CORS
+        response.setHeader("Access-Control-Allow-Origin", "*"); // Permitir acceso desde cualquier origen
+        response.setHeader("Access-Control-Allow-Methods", "*"); // Métodos permitidos
+        response.setHeader("Access-Control-Allow-Headers", "Content-Type"); // Cabeceras permitidas
+        Conexion conexion = new Conexion();  // Crear una nueva conexión a la base de datos
+        Connection conn = conexion.getConnection();  // Obtener la conexión establecida
+
+        try {
+            //  Consulta SQL para seleccionar todas las películas de la tabla 'peliculas'
+            String query = "SELECT * FROM movies";
+            Statement statement = conn.createStatement();
+            ResultSet resultSet = statement.executeQuery(query);  // Ejecutar la consulta y obtener los resultados
+
+            List<Pelicula> peliculas = new ArrayList<>();  // Crear una lista para almacenar objetos Pelicula
+
+            // Iterar sobre cada fila de resultados en el ResultSet
+            while (resultSet.next()) {
+                // Crear un objeto Pelicula con los datos de cada fila
+                Pelicula pelicula = new Pelicula(
+                    resultSet.getInt("id"),
+                    resultSet.getString("title"),  
+                    resultSet.getString("overview"),
+                    resultSet.getString("runtime"),
+                    query, resultSet.getInt("idDirector"), null, null
+                );
+                peliculas.add(pelicula);  // Agregar el objeto Pelicula a la lista
+            }
+
+            ObjectMapper mapper = new ObjectMapper();  // Crear un objeto ObjectMapper para convertir objetos Java a JSON
+            String json = mapper.writeValueAsString(peliculas);  // Convertir la lista de películas a formato JSON
+
+            response.setContentType("application/json");  // Establecer el tipo de contenido de la respuesta como JSON
+            response.getWriter().write(json);  // Escribir el JSON en el cuerpo de la respuesta HTTP
+        } catch (SQLException e) {
+            e.printStackTrace();  // Imprimir el error en caso de problemas con la base de datos
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);  // Configurar el código de estado de la respuesta HTTP como 500 (INTERNAL_SERVER_ERROR)
+        } finally {
+            conexion.close();  // Cerrar la conexión a la base de datos al finalizar la operación
         }
     }
 }
