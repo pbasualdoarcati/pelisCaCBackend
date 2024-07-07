@@ -1,23 +1,19 @@
 package com.peliscacbackend;
 
 import java.io.IOException;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
+import java.sql.*;
+import java.util.*;
 
-import javax.servlet.ServletException;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+
+import javax.servlet.*;
+import javax.servlet.http.*;
+
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+
 // Clase Controlador: Maneja las peticiones HTTP para insertar y recuperar películas.
-@WebServlet("/peliculas") // Anotación que mapea este servlet a la URL "/peliculas"
+// @WebServlet("/peliculas") // Anotación que mapea este servlet a la URL "/peliculas"
 public class Controlador extends HttpServlet { // Declaración de la clase Controlador que extiende HttpServlet
 
     protected void doPut(HttpServletRequest request, HttpServletResponse response)
@@ -57,7 +53,7 @@ public class Controlador extends HttpServlet { // Declaración de la clase Contr
                 params.add(pelicula.getSynopsis());
             }
             if (pelicula.getIdDirector() != null) {
-                query.append("idDirector = ?, ");
+                query.append("id_director = ?, ");
                 params.add(pelicula.getIdDirector());
             }
 
@@ -107,55 +103,107 @@ public class Controlador extends HttpServlet { // Declaración de la clase Contr
     }
 
     // Post- hay errores y consultas
+    private static final long serialVersionUID = 1L;
+
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         response.setHeader("Access-Control-Allow-Origin", "*");
         response.setHeader("Access-Control-Allow-Methods", "*");
         response.setHeader("Access-Control-Allow-Headers", "Content-Type");
-        Conexion conexion = new Conexion();// Vamos a hacer conexion?? la dejo por las dudas??
-        Connection conn = conexion.getConnection();  // idem pregunta de arriba
+
+        Conexion conexion = new Conexion();
+        Connection conn = conexion.getConnection();
 
         try {
             ObjectMapper mapper = new ObjectMapper();
             Pelicula pelicula = mapper.readValue(request.getInputStream(), Pelicula.class);
-        
-            // nuevas tablas de pelis
-            String query = "INSERT INTO peliculas (titulo, duracion, imagen, synopsis, idActor, idDirector, idGenero) VALUES (?, ?, ?, ?, ?, ?, ?)";
+
+            // Validación de la entrada
+            if (pelicula.getTitulo() == null || pelicula.getDuracion() == null || pelicula.getImagen() == null ||
+                pelicula.getSynopsis() == null || pelicula.getIdDirector() == null) {
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                response.getWriter().write("Todos los campos son requeridos.");
+                return;
+            }
+
+            String query = "INSERT INTO movies (title, runtime, poster_path, overview, id_director) VALUES (?, ?, ?, ?, ?)";
             PreparedStatement statement = conn.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
-        
-            // Establecer los parámetros de la consulta de inserción
+
             statement.setString(1, pelicula.getTitulo());
             statement.setString(2, pelicula.getDuracion());
             statement.setString(3, pelicula.getImagen());
             statement.setString(4, pelicula.getSynopsis());
-            statement.setInt(5, pelicula.getIdActor());
-            statement.setInt(6, pelicula.getIdDirector());
-            statement.setInt(7, pelicula.getIdGenero());
+            statement.setInt(5, pelicula.getIdDirector());
+/*             statement.setInt(5, pelicula.getIdActor());
+            statement.setInt(7, pelicula.getIdGenero()); */
 
-
-        
-            statement.executeUpdate();
-        
-            ResultSet rs = statement.getGeneratedKeys();
-            if (rs.next()) {
-                Long idPeli = rs.getLong(1);
-                
-                response.setContentType("application/json");
-                String json = mapper.writeValueAsString(idPeli);
-                response.getWriter().write(json);
+            int rowsInserted = statement.executeUpdate();
+            if (rowsInserted > 0) {
+                ResultSet rs = statement.getGeneratedKeys();
+                if (rs.next()) {
+                    Long idPeli = rs.getLong(1);
+                    response.setContentType("application/json");
+                    String json = mapper.writeValueAsString(idPeli);
+                    response.getWriter().write(json);
+                }
+                response.setStatus(HttpServletResponse.SC_CREATED);
+            } else {
+                response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+                response.getWriter().write("No se pudo insertar la película.");
             }
-            
-            response.setStatus(HttpServletResponse.SC_CREATED);
         } catch (SQLException e) {
             e.printStackTrace();
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            response.getWriter().write("Error al insertar la película en la base de datos.");
         } catch (IOException e) {
-            e.printStackTrace(); 
-            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            e.printStackTrace();
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            response.getWriter().write("Error al procesar la solicitud.");
         } finally {
             conexion.close();
         }
-        
     }
+      protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        //Configurar cabeceras CORS
+        response.setHeader("Access-Control-Allow-Origin", "*"); // Permitir acceso desde cualquier origen
+        response.setHeader("Access-Control-Allow-Methods", "*"); // Métodos permitidos
+        response.setHeader("Access-Control-Allow-Headers", "Content-Type"); // Cabeceras permitidas
+        Conexion conexion = new Conexion();  // Crear una nueva conexión a la base de datos
+        Connection conn = conexion.getConnection();  // Obtener la conexión establecida
 
+        try {
+            //  Consulta SQL para seleccionar todas las películas de la tabla 'peliculas'
+            String query = "SELECT * FROM movies";
+            Statement statement = conn.createStatement();
+            ResultSet resultSet = statement.executeQuery(query);  // Ejecutar la consulta y obtener los resultados
 
+            List<Pelicula> peliculas = new ArrayList<>();  // Crear una lista para almacenar objetos Pelicula
+
+            // Iterar sobre cada fila de resultados en el ResultSet
+            while (resultSet.next()) {
+                // Crear un objeto Pelicula con los datos de cada fila
+                Pelicula pelicula = new Pelicula(
+                    resultSet.getInt("id"),
+                    resultSet.getString("title"),  
+                    resultSet.getString("runtime"),
+                    resultSet.getString("poster_path"),
+                    resultSet.getString("overview"),
+                    null,
+                    resultSet.getInt("id_director"), 
+                    null
+                );
+                peliculas.add(pelicula);  // Agregar el objeto Pelicula a la lista
+            }
+
+            ObjectMapper mapper = new ObjectMapper();  // Crear un objeto ObjectMapper para convertir objetos Java a JSON
+            String json = mapper.writeValueAsString(peliculas);  // Convertir la lista de películas a formato JSON
+
+            response.setContentType("application/json");  // Establecer el tipo de contenido de la respuesta como JSON
+            response.getWriter().write(json);  // Escribir el JSON en el cuerpo de la respuesta HTTP
+        } catch (SQLException e) {
+            e.printStackTrace();  // Imprimir el error en caso de problemas con la base de datos
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);  // Configurar el código de estado de la respuesta HTTP como 500 (INTERNAL_SERVER_ERROR)
+        } finally {
+            conexion.close();  // Cerrar la conexión a la base de datos al finalizar la operación
+        }
+    }
 }
