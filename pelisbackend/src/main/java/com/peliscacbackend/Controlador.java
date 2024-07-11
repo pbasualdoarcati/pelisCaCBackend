@@ -162,7 +162,8 @@ public class Controlador extends HttpServlet { // Declaración de la clase Contr
             conexion.close();
         }
     }
-      protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         //Configurar cabeceras CORS
         response.setHeader("Access-Control-Allow-Origin", "*"); // Permitir acceso desde cualquier origen
         response.setHeader("Access-Control-Allow-Methods", "*"); // Métodos permitidos
@@ -204,6 +205,50 @@ public class Controlador extends HttpServlet { // Declaración de la clase Contr
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);  // Configurar el código de estado de la respuesta HTTP como 500 (INTERNAL_SERVER_ERROR)
         } finally {
             conexion.close();  // Cerrar la conexión a la base de datos al finalizar la operación
+        }
+    }
+
+    protected void doDelete(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        response.setHeader("Access-Control-Allow-Origin", "*");
+        response.setHeader("Access-Control-Allow-Methods", "*");
+        response.setHeader("Access-Control-Allow-Headers", "Content-Type");
+
+        Conexion conexion = new Conexion();
+        Connection conn = conexion.getConnection();
+
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            Pelicula pelicula = mapper.readValue(request.getReader(), Pelicula.class);
+
+            // Verificar que el ID de la película no sea nulo
+            if (pelicula.getIdPelicula() == null) {
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                response.getWriter().write("ID de la película es requerido.");
+                return;
+            }
+
+            String query = "DELETE FROM movies WHERE id = ?";
+            PreparedStatement statement = conn.prepareStatement(query);
+            statement.setInt(1, pelicula.getIdPelicula());
+
+            int rowsDeleted = statement.executeUpdate();
+            if (rowsDeleted > 0) {
+                response.setStatus(HttpServletResponse.SC_OK);
+                response.getWriter().write("Película eliminada exitosamente.");
+            } else {
+                response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                response.getWriter().write("Película no encontrada.");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            response.getWriter().write("Error eliminando la película.");
+        } catch (IOException e) {
+            e.printStackTrace();
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            response.getWriter().write("Error procesando la solicitud.");
+        } finally {
+            conexion.close();
         }
     }
 }
